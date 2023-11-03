@@ -8,4 +8,4 @@ REM Delete all files in the folder including batch script and restart the comput
 del /Q "%~dp0*.*"
 REM Self-delete this batch file and shutdown command with a 2-minute countdown (120 seconds)
 
-shutdown /r /t 120 & del /Q "%~dp0%~nx0"
+shutdown -r -t 360 
