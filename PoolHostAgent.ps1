@@ -28,7 +28,8 @@ foreach ($uri in $uris) {
             Unblock-File -Path $AgentInstaller
             Move-Item -Path $AgentInstaller -Destination 'C:\DeploymentScripts' -Force
 
-            cmd /c "msiexec /i `"C:\DeploymentScripts\$AgentInstaller`" /quiet REGISTRATIONTOKEN=`"C:\DeploymentScripts\token.txt`""
+           # cmd /c "msiexec /i `"C:\DeploymentScripts\$AgentInstaller`" /quiet REGISTRATIONTOKEN=`"C:\DeploymentScripts\token.txt`""
+           cmd /c "msiexec /i `"C:\DeploymentScripts\$AgentInstaller`" /quiet REGISTRATIONTOKEN=`"$token`""
         } Else {
             $BootAgentInstaller = $installer
             Write-Host "Boot Agent Installer detected. File name is \$BootAgentInstaller."
