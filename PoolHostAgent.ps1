@@ -21,7 +21,7 @@ foreach ($uri in $uris) {
 
 
 
-    foreach ($installer in $installers) 
+    foreach ($installer in $installers) {
         If ($installer -match 'RDAgent.Installer') {
             $AgentInstaller = $installer
             Write-Host "Agent Installer detected. File name is \$AgentInstaller."
@@ -39,3 +39,4 @@ foreach ($uri in $uris) {
 
         }
 
+    }
