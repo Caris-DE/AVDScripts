@@ -1,5 +1,6 @@
 {
-    "apiVersion": "2015-06-15",
+     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+     "apiVersion": "2015-06-15",
     "type": "Microsoft.Compute/virtualMachines/extensions",
     "name": "[concat('$dnsLabelPrefix','/joindomain')]",
     "location": "$location",
