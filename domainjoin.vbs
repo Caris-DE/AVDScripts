@@ -1,5 +1,7 @@
 Option Explicit
 
+Dim strDomainFile, strOUFile
+Dim objFSO, objDomainFile, objOUFile
 Dim strDomain, strOU, strComputer, strUsername, strPassword
 Dim objNetwork, objComputer
 
@@ -9,9 +11,21 @@ If WScript.Arguments.Count < 2 Then
     WScript.Quit
 End If
 
-' Set the domain, OU
-strDomain = "$domaintojoin"
-strOU = "$targetOU"
+' Set the paths for the text files containing domain and OU information
+strDomainFile = "C:\DeploymentScripts\Domain.txt"
+strOUFile = "C:\DeploymentScripts\OU.txt"
+
+' Create a FileSystemObject
+Set objFSO = CreateObject("Scripting.FileSystemObject")
+
+' Read domain and OU from text files
+Set objDomainFile = objFSO.OpenTextFile(strDomainFile, 1)
+strDomain = objDomainFile.ReadLine
+objDomainFile.Close
+
+Set objOUFile = objFSO.OpenTextFile(strOUFile, 1)
+strOU = objOUFile.ReadLine
+objOUFile.Close
 
 ' Get the local computer name
 Set objNetwork = CreateObject("WScript.Network")
