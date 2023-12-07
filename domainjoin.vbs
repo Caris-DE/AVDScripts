@@ -1,49 +1,66 @@
-Option Explicit
+' JoinDomain.vbs
+' VBScript program to join a computer to a domain.
+' The computer account is created in Active Directory.
+' The computer must have XP or above.
+' The AD must be W2k3 or above.
 
-Dim strDomainFile, strOUFile
-Dim objFSO, objDomainFile, objOUFile
-Dim strDomain, strOU, strComputer, strUsername, strPassword
-Dim objNetwork, objComputer
+Dim strDomain, strUser, strPassword
+Dim objNetwork, strComputer, objComputer, lngReturnValue
+Dim strOU
 
-' Check if the required number of command-line arguments is provided
-If WScript.Arguments.Count < 2 Then
-    WScript.Echo "Usage: cscript JoinDomain.vbs <Username> <Password>"
-    WScript.Quit
-End If
+Const JOIN_DOMAIN = 1
+Const ACCT_CREATE = 2
+Const ACCT_DELETE = 4
+Const WIN9X_UPGRADE = 16
+Const DOMAIN_JOIN_IF_JOINED = 32
+Const JOIN_UNSECURE = 64
+Const MACHINE_PASSWORD_PASSED = 128
+Const DEFERRED_SPN_SET = 256
+Const INSTALL_INVOCATION = 262144
 
-' Set the paths for the text files containing domain and OU information
-strDomainFile = "C:\DeploymentScripts\Domain.txt"
-strOUFile = "C:\DeploymentScripts\OU.txt"
-
-' Create a FileSystemObject
-Set objFSO = CreateObject("Scripting.FileSystemObject")
-
-' Read domain and OU from text files
-Set objDomainFile = objFSO.OpenTextFile(strDomainFile, 1)
-strDomain = objDomainFile.ReadLine
-objDomainFile.Close
-
-Set objOUFile = objFSO.OpenTextFile(strOUFile, 1)
-strOU = objOUFile.ReadLine
-objOUFile.Close
-
-' Get the local computer name
+'delete existing account
+Const NETSETUP_ACCT_DELETE = 2 'Disables computer account in domain.
 Set objNetwork = CreateObject("WScript.Network")
 strComputer = objNetwork.ComputerName
 
-' Get the username and password from command-line arguments
-strUsername = WScript.Arguments(0)
-strPassword = WScript.Arguments(1)
+Set objComputer = GetObject("winmgmts:{impersonationLevel=Impersonate}!\\" & _
+ strComputer & "\root\cimv2:Win32_ComputerSystem.Name='" & strComputer & "'")
+strDomain1 = objComputer.Domain
+intReturn = objComputer.UnjoinDomainOrWorkgroup _
+ (strPassword, strDomain1 & "\" & strUser, NETSETUP_ACCT_DELETE)
 
-' Create computer object
-Set objComputer = GetObject("WinNT://" & strDomain & "/" & strComputer)
+' add new account on new domain
+' Read domain from file
+Set objFSO = CreateObject("Scripting.FileSystemObject")
+Set objDomainFile = objFSO.OpenTextFile("C:\DeploymentScripts\domain.txt", 1)
+strDomain = objDomainFile.ReadLine
+objDomainFile.Close
 
-' Join the computer to the domain
-objComputer.JoinDomainOrWorkgroup strDomain, strPassword, strOU & "\" & strUsername, strPassword, 3
+' Read OU from file
+Set objOUFile = objFSO.OpenTextFile("C:\DeploymentScripts\OU.txt", 1)
+strOU = objOUFile.ReadLine
+objOUFile.Close
 
-' Check the result
-If Err.Number = 0 Then
-    WScript.Echo "Computer joined to domain successfully!"
+' Get credentials as arguments
+strDomain = WScript.Arguments(0)
+strUser = WScript.Arguments(1)
+strPassword = WScript.Arguments(2)
+
+Set objNetwork = CreateObject("WScript.Network")
+strComputer = objNetwork.ComputerName
+
+Set objComputer = GetObject("winmgmts:" _
+& "{impersonationLevel=Impersonate,authenticationLevel=Pkt}!\\" & _
+strComputer & "\root\cimv2:Win32_ComputerSystem.Name='" & _
+strComputer & "'")
+
+lngReturnValue = objComputer.JoinDomainOrWorkGroup(strDomain, _
+strPassword, strDomain & "\" & strUser, strOU, _
+JOIN_DOMAIN + ACCT_CREATE)
+
+' Check the return value and display a message
+If lngReturnValue = 0 Then
+    WScript.Echo "Computer successfully joined to the domain."
 Else
-    WScript.Echo "Error joining computer to domain: " & Err.Description
+    WScript.Echo "Failed to join the domain. Error code: " & lngReturnValue
 End If
